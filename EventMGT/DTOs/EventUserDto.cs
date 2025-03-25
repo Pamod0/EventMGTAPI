@@ -1,12 +1,10 @@
-﻿namespace EventMGT.Models
+﻿namespace EventMGT.DTOs
 {
-    public class Member
+    public class EventUserDto
     {
-        public int Id { get; set; }
         public string NIC { get; set; }
         public string Name { get; set; }
         public string Department { get; set; }
-        public bool IsRegisteredForMeal { get; set; }
         public DateTime? RegistrationDate { get; set; }
     }
 }

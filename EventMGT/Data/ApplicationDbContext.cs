@@ -11,6 +11,6 @@ namespace EventMGT.Data
 
         }
 
-        public DbSet<Member> Members { get; set; }
+        public DbSet<EventUser> EventUsers { get; set; }
     }
 }

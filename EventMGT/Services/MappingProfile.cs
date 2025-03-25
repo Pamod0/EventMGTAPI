@@ -8,9 +8,9 @@ namespace EventMGT.Services
     {
         public MappingProfile()
         {
-            CreateMap<Member, MemberDto>();
+            CreateMap<EventUser, EventUserDto>();
 
-            CreateMap<RegistrationRequestDto, Member>()
+            CreateMap<RegistrationRequestDto, EventUser>()
                 .ForMember(dest => dest.IsRegisteredForMeal, opt => opt.MapFrom(src => true))
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => DateTime.UtcNow));
         }

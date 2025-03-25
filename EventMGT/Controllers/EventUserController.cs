@@ -1,29 +1,32 @@
 ﻿using AutoMapper;
 using EventMGT.Data;
 using EventMGT.DTOs;
+using EventMGT.Interfaces;
 using EventMGT.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventMGT.Controllers
 {
-    [Area("MemberManagement")]
-    [Route("api/MemberManagement/[controller]")]
+
     [ApiController]
-    public class MealRegistrationController : ControllerBase
+    [Route("api/[controller]")]
+    public class EventUserController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
-        public MealRegistrationController(ApplicationDbContext context, IMapper mapper)
+        private readonly IEventUserRepository _eventUserService;
+        public EventUserController(ApplicationDbContext context, IMapper mapper, IEventUserRepository eventUserService)
         {
             _context = context;
             _mapper = mapper;
+            _eventUserService = eventUserService;
         }
 
-        [HttpGet("check/{nic}")]
+        [HttpGet("NIC/{nic}")]
         public async Task<ActionResult<RegistrationStatusResponseDto>> CheckRegistrationStatus(string nic)
         {
-            var member = await _context.Members.
+            var member = await _context.EventUsers.
                 FirstOrDefaultAsync(m => m.NIC == nic);
 
             if (member == null)
@@ -31,21 +34,31 @@ namespace EventMGT.Controllers
                 return Ok(new RegistrationStatusResponseDto
                 {
                     IsRegistered = false,
-                    Message = "Member not found. You can register for the meal program."
+                    Message = "Member not found. Please register for the program."
                 });
             }
             return Ok(new RegistrationStatusResponseDto
             {
                 IsRegistered = member.IsRegisteredForMeal,
                 Message = member.IsRegisteredForMeal
-                ? "You have already registered for the meal program."
-                    : "You are not registered for the meal program. You can register now.",
-                MemberDetails = _mapper.Map<MemberDto>(member)
+                ? "You have already registered for the program."
+                    : "Member not found. Please register for the program.",
+                MemberDetails = _mapper.Map<EventUserDto>(member)
 
             });
         }
 
-        [HttpPost("register")]
+        [HttpGet("GetAll")]
+        public async Task<ActionResult<EventUserDto>> GetAllEventUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            if (page < 1 || pageSize < 1)
+                return BadRequest(new { success = false, message = "Page and PageSize must be greater than 0" });
+
+            var users = await _eventUserService.GetPagedUsersAsync(page, pageSize);
+            return Ok(users);
+        }
+
+        [HttpPost("Register")]
         public async Task<ActionResult<RegistrationStatusResponseDto>> RegisterForMeal(RegistrationRequestDto request)
         {
 
@@ -59,7 +72,7 @@ namespace EventMGT.Controllers
                 return BadRequest("NIC is required");
             }
 
-            var existingMember = await _context.Members
+            var existingMember = await _context.EventUsers
                 .FirstOrDefaultAsync(m => m.NIC == request.NIC);
 
             if (existingMember != null)
@@ -73,8 +86,8 @@ namespace EventMGT.Controllers
                     return Ok(new RegistrationStatusResponseDto
                     {
                         IsRegistered = true,
-                        Message = "You have successfully registered for the meal program.",
-                        MemberDetails = _mapper.Map<MemberDto>(existingMember)
+                        Message = "You have successfully registered for the program.",
+                        MemberDetails = _mapper.Map<EventUserDto>(existingMember)
                     });
                 }
                 else
@@ -83,29 +96,29 @@ namespace EventMGT.Controllers
                     {
                         IsRegistered = true,
                         Message = "You are already registered for the meal program.",
-                        MemberDetails = _mapper.Map<MemberDto>(existingMember)
+                        MemberDetails = _mapper.Map<EventUserDto>(existingMember)
                     });
                 }
             }
             else
             {
-                var newMember = _mapper.Map<Member>(request);
-                _context.Members.Add(newMember);
+                var newMember = _mapper.Map<EventUser>(request);
+                _context.EventUsers.Add(newMember);
                 await _context.SaveChangesAsync();
 
                 return Ok(new RegistrationStatusResponseDto
                 {
                     IsRegistered = true,
-                    Message = "You have successfully registered for the meal program.",
-                    MemberDetails = _mapper.Map<MemberDto>(newMember)
+                    Message = "You have successfully registered for the program.",
+                    MemberDetails = _mapper.Map<EventUserDto>(newMember)
                 });
             }
         }
 
-        [HttpPost("unregister/{nic}")]
+        [HttpPost("Unregister/{nic}")]
         public async Task<ActionResult<RegistrationStatusResponseDto>> UnregisterFromMeal(string nic)
         {
-            var member = await _context.Members
+            var member = await _context.EventUsers
                 .FirstOrDefaultAsync(m => m.NIC == nic);
 
             if (member == null)
@@ -126,8 +139,8 @@ namespace EventMGT.Controllers
                 return Ok(new RegistrationStatusResponseDto
                 {
                     IsRegistered = false,
-                    Message = "Successfully unregistered from the meal program.",
-                    MemberDetails = _mapper.Map<MemberDto>(member)
+                    Message = "Successfully unregistered for the program.",
+                    MemberDetails = _mapper.Map<EventUserDto>(member)
                 });
             }
             else
@@ -135,8 +148,8 @@ namespace EventMGT.Controllers
                 return Ok(new RegistrationStatusResponseDto
                 {
                     IsRegistered = false,
-                    Message = "You are not registered for the meal program.",
-                    MemberDetails = _mapper.Map<MemberDto>(member)
+                    Message = "You are not registered for the program.",
+                    MemberDetails = _mapper.Map<EventUserDto>(member)
                 });
             }
         }

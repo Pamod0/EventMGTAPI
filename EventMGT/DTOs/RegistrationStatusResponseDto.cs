@@ -4,6 +4,6 @@
     {
         public bool IsRegistered { get; set; }
         public string Message { get; set; }
-        public MemberDto MemberDetails { get; set; }
+        public EventUserDto MemberDetails { get; set; }
     }
 }
