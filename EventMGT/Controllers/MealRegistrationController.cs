@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventMGT.Controllers
 {
+    [Area("MemberManagement")]
+    [Route("api/MemberManagement/[controller]")]
+    [ApiController]
     public class MealRegistrationController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
