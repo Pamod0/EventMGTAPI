@@ -15,7 +15,7 @@ namespace EventMGT.Repositories
             _context = context;
         }
 
-        public async Task<PagedResponse<List<EventUserDto>>> GetPagedUsersAsync(int page, int pageSize)
+        public async Task<PagedResponse<List<EventUserDto>>> GetPagedUsersAsync(int page, int pageSize, string searchText, bool exactMatch)
         {
             // Ensure valid pagination parameters
             if (page < 1) page = 1;
@@ -30,6 +30,24 @@ namespace EventMGT.Repositories
                     Department = user.Department,
                     RegistrationDate = user.RegistrationDate
                 });
+
+            if (!string.IsNullOrEmpty(searchText) && exactMatch) 
+            {
+                var exactRecord = await query
+                    .FirstOrDefaultAsync(u => u.NIC == searchText);
+
+                if (exactRecord != null)
+                {
+                    return new PagedResponse<List<EventUserDto>>(1, 1, 1, new List<EventUserDto> { exactRecord });
+                }
+                return new PagedResponse<List<EventUserDto>>(1, 1, 0, new List<EventUserDto>()); // No record found
+            }
+
+            // Apply search filter for partial matches
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                query = query.Where(u => u.NIC.Contains(searchText)); // Case-sensitive search
+            }
 
             var totalRecords = await query.CountAsync(); // Get total user count
 
