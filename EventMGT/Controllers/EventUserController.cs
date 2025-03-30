@@ -49,7 +49,8 @@ namespace EventMGT.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<ActionResult<EventUserDto>> GetAllEventUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchText = "", bool exactMatch = false)
+        public async Task<ActionResult<PagedResponse<List<EventUserDto>>>> GetAllEventUsers
+            ([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchText = "", bool exactMatch = false)
         {
             if (page < 1 || pageSize < 1)
                 return BadRequest(new { success = false, message = "Page and PageSize must be greater than 0" });
