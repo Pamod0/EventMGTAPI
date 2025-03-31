@@ -2,6 +2,7 @@
 using EventMGT.DTOs;
 using EventMGT.Interfaces;
 using EventMGT.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventMGT.Controllers
@@ -44,6 +45,7 @@ namespace EventMGT.Controllers
         }
 
         [HttpGet("GetAll")]
+        [Authorize]
         public async Task<ActionResult<PagedResponse<List<EventUserDto>>>> GetAllEventUsers(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
