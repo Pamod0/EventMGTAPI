@@ -1,4 +1,5 @@
-﻿using EventMGT.Data;
+﻿// EventUserRepository.cs
+using EventMGT.Data;
 using EventMGT.DTOs;
 using EventMGT.Interfaces;
 using EventMGT.Models;
@@ -31,7 +32,7 @@ namespace EventMGT.Repositories
                     RegistrationDate = user.RegistrationDate
                 });
 
-            if (!string.IsNullOrEmpty(searchText) && exactMatch) 
+            if (!string.IsNullOrEmpty(searchText) && exactMatch)
             {
                 var exactRecord = await query
                     .FirstOrDefaultAsync(u => u.NIC == searchText);
@@ -40,6 +41,7 @@ namespace EventMGT.Repositories
                 {
                     return new PagedResponse<List<EventUserDto>>(1, 1, 1, new List<EventUserDto> { exactRecord });
                 }
+
                 return new PagedResponse<List<EventUserDto>>(1, 1, 0, new List<EventUserDto>()); // No record found
             }
 
@@ -50,13 +52,40 @@ namespace EventMGT.Repositories
             }
 
             var totalRecords = await query.CountAsync(); // Get total user count
-
             var users = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(); // Fetch paginated results
 
             return new PagedResponse<List<EventUserDto>>(page, pageSize, totalRecords, users);
+        }
+
+        public async Task<EventUser> GetUserByNicAsync(string nic)
+        {
+            return await _context.EventUsers.FirstOrDefaultAsync(m => m.NIC == nic);
+        }
+
+        public async Task<bool> IsUserRegisteredAsync(string nic)
+        {
+            var user = await GetUserByNicAsync(nic);
+            return user != null && user.IsRegisteredForMeal;
+        }
+
+        public async Task<EventUser> AddUserAsync(EventUser user)
+        {
+            await _context.EventUsers.AddAsync(user);
+            return user;
+        }
+
+        public async Task<EventUser> UpdateUserAsync(EventUser user)
+        {
+            // EntityFramework will track the changes
+            return user;
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }
